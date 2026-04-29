@@ -1,6 +1,12 @@
 # rui314/setup-mold
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/rui314/setup-mold](https://github.com/rui314/setup-mold).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v1 | [`v1`](https://github.com/chainguard-actions/setup-mold/tree/v1) | — |
 
 ## Privacy
 
