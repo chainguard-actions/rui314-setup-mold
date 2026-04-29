@@ -1,5 +1,7 @@
 # rui314/setup-mold
 
+A GitHub Action to install the mold linker
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/rui314/setup-mold](https://github.com/rui314/setup-mold).
 
 ## Versions
