@@ -1,7 +1,0 @@
-{
-  "owner": "rui314",
-  "name": "setup-mold",
-  "visibility": "internal",
-  "description": "A GitHub Action to install the mold linker",
-  "block_publish": false
-}
