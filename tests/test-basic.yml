@@ -1,0 +1,40 @@
+name: Test basic usage (default version, make-default)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+      - name: Assert mold is installed
+        run: |
+          echo "Checking mold binary..."
+          if ! command -v mold >/dev/null 2>&1; then
+            echo "FAIL: mold binary not found in PATH"
+            exit 1
+          fi
+          MOLD_PATH="$(command -v mold)"
+          echo "mold found at: $MOLD_PATH"
+          echo "PASS: mold is installed"
+      - name: Assert mold version output
+        run: |
+          echo "Checking mold version..."
+          MOLD_VERSION="$(mold --version 2>&1)"
+          echo "mold version: $MOLD_VERSION"
+          if ! echo "$MOLD_VERSION" | grep -q "mold"; then
+            echo "FAIL: unexpected mold version output"
+            exit 1
+          fi
+          echo "PASS: mold version looks correct"
+      - name: Assert mold is the default linker
+        run: |
+          echo "Checking if mold is the default linker..."
+          LD_REAL="$(realpath /usr/bin/ld)"
+          echo "realpath of /usr/bin/ld: $LD_REAL"
+          if [ "$LD_REAL" != "/usr/local/bin/mold" ]; then
+            echo "FAIL: /usr/bin/ld does not point to /usr/local/bin/mold (got: $LD_REAL)"
+            exit 1
+          fi
+          echo "PASS: mold is the default linker"

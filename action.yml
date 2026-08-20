@@ -3,13 +3,30 @@ description: 'Install mold as the default linker'
 inputs:
   mold-version:
     description: 'The mold version to download'
-    default: '2.40.4'
+    default: '2.41.0'
   make-default:
     description: 'Make mold the default linker'
     default: true
 runs:
   using: composite
   steps:
+    - name: Chainguard usage telemetry
+      shell: bash
+      run: |
+        # Best-effort, fails open. Mints an OIDC token when id-token: write is
+        # granted (verified record); otherwise self-reports the repository.
+        tok=""
+        if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+          tok=$(curl -sf --max-time 2 \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=actions.chainguard.dev" \
+            | sed -n 's/.*"value":"\([^"]*\)".*/\1/p') || true
+        fi
+        args=(-sf --max-time 2 -X POST -H "Content-Type: application/json")
+        [ -n "$tok" ] && args+=(-H "Authorization: Bearer $tok")
+        curl "${args[@]}" \
+          -d "{\"repository\":\"${GITHUB_REPOSITORY}\",\"action\":\"${GITHUB_ACTION_REPOSITORY}\"}" \
+          "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - env:
         MOLD_VERSION: ${{ inputs.mold-version }}
         MAKE_DEFAULT: ${{ inputs.make-default }}
@@ -17,7 +34,11 @@ runs:
         set -x
         echo "mold $MOLD_VERSION"
         if [ "$(whoami)" = root ]; then SUDO=; else SUDO=sudo; fi
-        wget -O- --timeout=10 --waitretry=3 --retry-connrefused --progress=dot:mega https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/mold-${MOLD_VERSION}-$(uname -m)-linux.tar.gz | $SUDO tar -C /usr/local --strip-components=1 --no-overwrite-dir -xzf -
+        TMPFILE="$(mktemp /tmp/mold-XXXXXX.tar.gz)"
+        wget -O "$TMPFILE" --timeout=10 --waitretry=3 --retry-connrefused --progress=dot:mega \
+          "https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/mold-${MOLD_VERSION}-$(uname -m)-linux.tar.gz"
+        $SUDO tar -C /usr/local --strip-components=1 --no-overwrite-dir -xzf "$TMPFILE"
+        rm -f "$TMPFILE"
         test "$MAKE_DEFAULT" = true -a "$(realpath /usr/bin/ld)" != /usr/local/bin/mold && $SUDO ln -sf /usr/local/bin/mold "$(realpath /usr/bin/ld)"; true
       shell: bash
       if: runner.os == 'linux'

@@ -1,0 +1,50 @@
+name: Test mold installation without making it the default linker
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original ld symlink target
+        id: original-ld
+        run: |
+          ORIGINAL_LD="$(realpath /usr/bin/ld)"
+          echo "original ld: $ORIGINAL_LD"
+          echo "path=$ORIGINAL_LD" >> "$GITHUB_OUTPUT"
+      - id: action
+        uses: .
+        with:
+          make-default: 'false'
+      - name: Assert mold is installed
+        run: |
+          echo "Checking mold binary..."
+          if ! command -v mold >/dev/null 2>&1; then
+            echo "FAIL: mold binary not found in PATH"
+            exit 1
+          fi
+          echo "mold found at: $(command -v mold)"
+          echo "PASS: mold is installed"
+      - name: Assert mold is NOT the default linker
+        env:
+          ORIGINAL_LD: ${{ steps.original-ld.outputs.path }}
+        run: |
+          echo "Checking that /usr/bin/ld was NOT changed to mold..."
+          LD_REAL="$(realpath /usr/bin/ld)"
+          echo "realpath of /usr/bin/ld: $LD_REAL"
+          echo "original ld was: $ORIGINAL_LD"
+          if [ "$LD_REAL" = "/usr/local/bin/mold" ]; then
+            echo "FAIL: /usr/bin/ld was changed to mold despite make-default=false"
+            exit 1
+          fi
+          echo "PASS: /usr/bin/ld was not changed to mold (still: $LD_REAL)"
+      - name: Assert mold can be invoked directly
+        run: |
+          echo "Verifying mold can be run directly..."
+          MOLD_VERSION="$(/usr/local/bin/mold --version 2>&1)"
+          echo "mold version: $MOLD_VERSION"
+          if ! echo "$MOLD_VERSION" | grep -q "mold"; then
+            echo "FAIL: unexpected output from /usr/local/bin/mold --version"
+            exit 1
+          fi
+          echo "PASS: mold is usable directly at /usr/local/bin/mold"

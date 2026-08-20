@@ -1,0 +1,31 @@
+name: Test specific mold version installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          mold-version: '2.34.1'
+      - name: Assert mold is installed
+        run: |
+          echo "Checking mold binary..."
+          if ! command -v mold >/dev/null 2>&1; then
+            echo "FAIL: mold binary not found in PATH"
+            exit 1
+          fi
+          echo "mold found at: $(command -v mold)"
+          echo "PASS: mold is installed"
+      - name: Assert specific mold version
+        run: |
+          echo "Checking mold version is 2.34.1..."
+          MOLD_VERSION="$(mold --version 2>&1)"
+          echo "mold version output: $MOLD_VERSION"
+          if ! echo "$MOLD_VERSION" | grep -q "2\.34\.1"; then
+            echo "FAIL: expected version 2.34.1 but got: $MOLD_VERSION"
+            exit 1
+          fi
+          echo "PASS: mold version 2.34.1 is installed"
