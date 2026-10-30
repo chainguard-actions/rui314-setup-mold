@@ -6,9 +6,9 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1 | [`v1`](https://github.com/chainguard-actions/rui314-setup-mold/tree/v1) | [`9c9c13b`](https://github.com/rui314/setup-mold/commit/9c9c13bf4c3f1adef0cc596abc155580bcb04444) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1 | [`v1`](https://github.com/chainguard-actions/rui314-setup-mold/tree/v1) | [`9c9c13b`](https://github.com/rui314/setup-mold/commit/9c9c13bf4c3f1adef0cc596abc155580bcb04444) | [`HARDENING.md`](https://github.com/chainguard-actions/rui314-setup-mold/blob/v1/HARDENING.md) |
 
 ## Privacy
 
